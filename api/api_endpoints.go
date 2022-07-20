@@ -24,6 +24,11 @@ type BlockingControl interface {
 	BlockingStatus() BlockingStatus
 }
 
+// CacheControl interface to control the blocking status
+type CacheControl interface {
+	ClearCache() CacheStatus
+}
+
 // ListRefresher interface to control the list refresh
 type ListRefresher interface {
 	RefreshLists()
@@ -32,6 +37,11 @@ type ListRefresher interface {
 // BlockingEndpoint endpoint for the blocking status control
 type BlockingEndpoint struct {
 	control BlockingControl
+}
+
+// CacheEndpoint endpoint for the blocking status control
+type CacheEndpoint struct {
+	control CacheControl
 }
 
 // ListRefreshEndpoint endpoint for list refresh
@@ -45,8 +55,16 @@ func RegisterEndpoint(router chi.Router, t interface{}) {
 		registerBlockingEndpoints(router, a)
 	}
 
+	if a, ok := t.(CacheControl); ok {
+		registerCacheEndpoint(router, a)
+	}
+
 	if a, ok := t.(ListRefresher); ok {
 		registerListRefreshEndpoints(router, a)
+	}
+
+	if a, ok := t.(HealthControl); ok {
+		registerHealthEndpoint(router, a)
 	}
 }
 
@@ -73,6 +91,12 @@ func registerBlockingEndpoints(router chi.Router, control BlockingControl) {
 	router.Get(PathBlockingEnablePath, s.apiBlockingEnable)
 	router.Get(PathBlockingDisablePath, s.apiBlockingDisable)
 	router.Get(PathBlockingStatusPath, s.apiBlockingStatus)
+}
+
+func registerCacheEndpoint(router chi.Router, control CacheControl) {
+	s := &CacheEndpoint{control}
+	// register API endpoints
+	router.Get(PathCacheClearPath, s.apiCacheClear)
 }
 
 // apiBlockingEnable is the http endpoint to enable the blocking status
@@ -150,3 +174,21 @@ func (s *BlockingEndpoint) apiBlockingStatus(rw http.ResponseWriter, _ *http.Req
 	_, err = rw.Write(response)
 	util.LogOnError("unable to write response ", err)
 }
+
+// apiCacheClear is the http endpoint to clear resolver cache
+// @Summary Clears resolver cache
+// @Description clears the resolver cache
+// @Tags cache
+// @Success 200   "Blocking is disabled"
+// @Router /cache/clear [get]
+func (s *CacheEndpoint) apiCacheClear(rw http.ResponseWriter, req *http.Request) {
+	rw.Header().Set(contentTypeHeader, jsonContentType)
+
+	status := s.control.ClearCache()
+	response, err := json.Marshal(status)
+	util.LogOnError("unable to marshal response ", err)
+
+	_, err = rw.Write(response)
+	util.LogOnError("unable to write response ", err)
+}
+

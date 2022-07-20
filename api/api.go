@@ -22,6 +22,9 @@ const (
 	// PathBlockingDisablePath defines the REST endpoint for blocking disable
 	PathBlockingDisablePath = "/api/blocking/disable"
 
+	// PathCacheClearPath defines the REST endpoint for cache clearing
+	PathCacheClearPath = "/api/cache/clear"
+
 	// PathListsRefresh defines the REST endpoint for blocking refresh
 	PathListsRefresh = "/api/lists/refresh"
 
@@ -60,4 +63,9 @@ type BlockingStatus struct {
 	DisabledGroups []string `json:"disabledGroups"`
 	// If blocking is temporary disabled: amount of seconds until blocking will be enabled
 	AutoEnableInSec uint `json:"autoEnableInSec"`
+}
+
+type CacheStatus struct {
+	// OK if everything is OK, NOT_OK otherwise
+	Status string `json:"status"`
 }

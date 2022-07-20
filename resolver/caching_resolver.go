@@ -6,6 +6,7 @@ import (
 
 	"github.com/hako/durafmt"
 
+	"github.com/0xERR0R/blocky/api"
 	"github.com/0xERR0R/blocky/cache/expirationcache"
 	"github.com/0xERR0R/blocky/config"
 	"github.com/0xERR0R/blocky/evt"
@@ -270,4 +271,12 @@ func (r *CachingResolver) adjustTTLs(answer []dns.RR) (maxTTL uint32) {
 	}
 
 	return
+}
+
+func (r *CachingResolver) ClearCache() api.CacheStatus {
+	r.resultCache.Clear()
+
+	return api.CacheStatus{
+		Status: "ok",
+	}
 }
